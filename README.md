@@ -41,6 +41,6 @@ interactions (connect, disconnect, buttons, axes, touch, vibration).
 
 ## Collaborators
 
-| WebKit | Chromium | Gecko | NVidia |
+| WebKit | Chromium | Gecko | Nvidia |
 |-|-|-|-|
 | @marcoscaceres | @nondebug | | @xingri |
