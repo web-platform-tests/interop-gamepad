@@ -10,6 +10,10 @@ const log = (message) => {
   console.log(`${Date.now()} ${message}`);
 };
 
+const timestampsString = (gamepads) => {
+  return `[${gamepads.map((g) => g ? g.timestamp : '❌').join(', ')}]`;
+};
+
 const getIdsString = (gamepads) => {
   return `[\n${gamepads.map((g) => g ? `  ${g.id},` : '  ❌,').join('\n')}\n]`;
 };
@@ -72,7 +76,7 @@ const startWatching = (e) => {
   console.log(`${e.target.id}: started`);
   window.watchId = setInterval(() => {
     const gamepads = navigator.getGamepads();
-    log(`${e.target.id}: connected ${connectedGamepadsString(gamepads)} buttons ${maxButtonValuesString(gamepads)} pressed ${pressedGamepadsString(gamepads)} touched ${touchedGamepadsString(gamepads)}`);
+    log(`${e.target.id}: connected ${connectedGamepadsString(gamepads)} buttons ${maxButtonValuesString(gamepads)} pressed ${pressedGamepadsString(gamepads)} touched ${touchedGamepadsString(gamepads)} timestamp ${timestampsString(gamepads)}`);
   }, 500);
 };
 
@@ -144,12 +148,12 @@ window.addEventListener('DOMContentLoaded', (e) => {
 window.addEventListener('gamepadconnected', (e) => {
   const gamepads = navigator.getGamepads();
   const gamepadCount = gamepads.filter((g) => g && g.connected).length;
-  log(`gamepadconnected (connected: ${gamepadCount} ${connectedGamepadsString(gamepads)})`);
+  log(`gamepadconnected for index ${e.gamepad.index} (connected: ${gamepadCount} ${connectedGamepadsString(gamepads)})`);
 });
 window.addEventListener('gamepaddisconnected', (e) => {
   const gamepads = navigator.getGamepads();
   const gamepadCount = gamepads.filter((g) => g && g.connected).length;
-  log(`gamepaddisconnected (connected: ${gamepadCount} ${connectedGamepadsString(gamepads)})`);
+  log(`gamepaddisconnected for index ${e.gamepad.index} (connected: ${gamepadCount} ${connectedGamepadsString(gamepads)})`);
 });
 </script>
 <h2>Gamepad API manual tests</h2>
