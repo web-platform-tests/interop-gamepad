@@ -1,0 +1,332 @@
+<html>
+<body>
+<style>
+body::backdrop {
+  background-color: #fff;
+}
+</style>
+<script>
+const log = (message) => {
+  console.log(`${Date.now()} ${message}`);
+};
+
+const getIdsString = (gamepads) => {
+  return `[\n${gamepads.map((g) => g ? `  ${g.id},` : '  ❌,').join('\n')}\n]`;
+};
+
+const getGamepadsString = (gamepads) => {
+  return `[${gamepads.map((g) => g ? '✅' : '❌').join(',')}]`;
+};
+
+const connectedGamepadsString = (gamepads) => {
+  return `[${gamepads.map((g) => (g && g.connected) ? '✅' : '❌').join(',')}]`;
+};
+
+const hapticGamepadsString = (gamepads) => {
+  return `[${gamepads.map((g) => (g && g.vibrationActuator) ? '✅' : '❌').join(',')}]`;
+};
+
+const effectsGamepadsString = (gamepads) => {
+  return `[${gamepads.map((g) => (g && g.vibrationActuator && g.vibrationActuator.effects !== undefined) ? '✅' : '❌').join(',')}]`;
+};
+
+const hapticEffectGamepadsString = (gamepads, effect) => {
+  return `[${gamepads.map((g) => (g && g.vibrationActuator && g.vibrationActuator.effects.includes(effect)) ? '✅' : '❌').join(',')}]`;
+};
+
+const pressedGamepadsString = (gamepads) => {
+  return `[${navigator.getGamepads().map((g) => (g && g.buttons.some((b) => b.pressed)) ? '✅' : '❌').join(',')}]`;
+};
+
+const touchedGamepadsString = (gamepads) => {
+  return `[${navigator.getGamepads().map((g) => (g && g.buttons.some((b) => b.touched)) ? '✅' : '❌').join(',')}]`;
+};
+
+const touchesString = (gamepads) => {
+  return `[${gamepads.map((g) => (g && g.touches) ? '✅' : '❌').join(',')}]`;
+};
+
+const maxButtonValuesString = (gamepads) => {
+  return `[${gamepads.map((g) => g ? Math.max(...g.buttons.map(b => b.value)) : '❌').join(',')}]`;
+}
+
+const playVibrationEffect = async (id, effect, params) => {
+  const gamepads = navigator.getGamepads();
+  if (gamepads.length < 1 || gamepads[0] === null) {
+    log(`${id}: no gamepads ${getGamepadsString(gamepads)}`);
+    return;
+  }
+  if (params.startDelay !== undefined && params.startDelay > 0) {
+    setTimeout(() => log(`${id}: playEffect start delay elapsed (${params.startDelay} ms)`), params.startDelay);
+  }
+  const paramsString = Object.keys(params).filter(k => params[k] !== undefined).map(k => `${k}:${params[k]}`).join(' ');
+  log(`${id}: playEffect ${effect} with params {${paramsString}}`);
+  const result = await gamepads[0].vibrationActuator.playEffect(effect, params);
+  log(`${id}: playEffect promise resolved to "${result}"`);
+};
+
+const startWatching = (e) => {
+  if (window.watchId !== undefined) {
+    clearInterval(window.watchId);
+  }
+  console.log(`${e.target.id}: started`);
+  window.watchId = setInterval(() => {
+    const gamepads = navigator.getGamepads();
+    log(`${e.target.id}: connected ${connectedGamepadsString(gamepads)} buttons ${maxButtonValuesString(gamepads)} pressed ${pressedGamepadsString(gamepads)} touched ${touchedGamepadsString(gamepads)}`);
+  }, 500);
+};
+
+const stopWatching = (e) => {
+  if (window.watchId) {
+    console.log(`${e.target.id}: stopped`);
+    clearInterval(window.watchId);
+    window.watchId = undefined;
+  }
+};
+
+window.addEventListener('DOMContentLoaded', (e) => {
+  document.getElementById('effect-parameters-duration').addEventListener('click', (e) =>
+      playVibrationEffect(e.target.id, 'dual-rumble', {duration: 1000, strongMagnitude: 1.0}));
+  document.getElementById('effect-parameters-start-delay').addEventListener('click', (e) =>
+      playVibrationEffect(e.target.id, 'dual-rumble', {duration: 1000, startDelay: 1000, strongMagnitude: 1.0}));
+  document.getElementById('effect-parameters-strong').addEventListener('click', (e) =>
+      playVibrationEffect(e.target.id, 'dual-rumble', {duration: 1000, strongMagnitude: 1.0}));
+  document.getElementById('effect-parameters-weak').addEventListener('click', (e) =>
+      playVibrationEffect(e.target.id, 'dual-rumble', {duration: 1000, weakMagnitude: 1.0}));
+  document.getElementById('effect-parameters-long').addEventListener('click', (e) =>
+      playVibrationEffect(e.target.id, 'dual-rumble', {duration: 5000, strongMagnitude: 1.0}));
+  document.getElementById('effect-parameters-start-delay-interrupt').addEventListener('click', (e) =>
+      playVibrationEffect(e.target.id, 'dual-rumble', {duration: 1000, startDelay: 1000, weakMagnitude: 1.0}));
+  document.getElementById('haptics-result-strong').addEventListener('click', (e) =>
+      playVibrationEffect(e.target.id, 'dual-rumble', {duration: 5000, strongMagnitude: 1.0}));
+  document.getElementById('haptics-result-weak').addEventListener('click', (e) =>
+      playVibrationEffect(e.target.id, 'dual-rumble', {duration: 1000, weakMagnitude: 1.0}));
+  document.getElementById('trigger-rumble-left').addEventListener('click', (e) =>
+      playVibrationEffect(e.target.id, 'dual-rumble', {duration: 1000, leftTrigger: 1.0}));
+  document.getElementById('trigger-rumble-right').addEventListener('click', (e) =>
+      playVibrationEffect(e.target.id, 'dual-rumble', {duration: 1000, rightTrigger: 1.0}));
+  document.getElementById('check-haptic-gamepads').addEventListener('click', (e) =>
+      log(`${e.target.id}: ${hapticGamepadsString(navigator.getGamepads())}`));
+  document.getElementById('check-dual-rumble-gamepads').addEventListener('click', (e) =>
+      log(`${e.target.id}: ${hapticEffectGamepadsString(navigator.getGamepads(), 'dual-rumble')}`));
+  document.getElementById('check-trigger-rumble-gamepads').addEventListener('click', (e) =>
+      log(`${e.target.id}: ${hapticEffectGamepadsString(navigator.getGamepads(), 'trigger-rumble')}`));
+  document.getElementById('check-effects').addEventListener('click', (e) =>
+      log(`${e.target.id}: ${effectsGamepadsString(navigator.getGamepads())}`));
+  document.getElementById('get-gamepads').addEventListener('click', (e) =>
+      log(`${e.target.id}: ${getGamepadsString(navigator.getGamepads())}`));
+  document.getElementById('check-touches').addEventListener('click', (e) =>
+      log(`${e.target.id}: ${touchesString(navigator.getGamepads())}`));
+  document.getElementById('get-ids').addEventListener('click', (e) =>
+      log(`${e.target.id}: ${getIdsString(navigator.getGamepads())}`));
+  document.getElementById('start-watching').addEventListener('click', startWatching);
+  document.getElementById('stop-watching').addEventListener('click', stopWatching);
+  document.getElementById('start-watching2').addEventListener('click', startWatching);
+  document.getElementById('stop-watching2').addEventListener('click', stopWatching);
+  document.getElementById('start-watching3').addEventListener('click', startWatching);
+  document.getElementById('stop-watching3').addEventListener('click', stopWatching);
+  setInterval(() => {
+    const gamepads = navigator.getGamepads();
+    const wasAllUp = !window.lastGamepads || window.lastGamepads.every((g) => !g || !g.buttons[9].pressed);
+    const isAnyDown = gamepads.some((g) => g && g.buttons[9].pressed);
+    if (wasAllUp && isAnyDown) {
+      if (document.fullscreenElement) {
+        log('exit fullscreen');
+        document.exitFullscreen();
+      } else {
+        log('request fullscreen')
+        document.body.requestFullscreen();
+      }
+    }
+    window.lastGamepads = gamepads;
+  }, 100);
+});
+window.addEventListener('gamepadconnected', (e) => {
+  const gamepads = navigator.getGamepads();
+  const gamepadCount = gamepads.filter((g) => g && g.connected).length;
+  log(`gamepadconnected (connected: ${gamepadCount} ${connectedGamepadsString(gamepads)})`);
+});
+window.addEventListener('gamepaddisconnected', (e) => {
+  const gamepads = navigator.getGamepads();
+  const gamepadCount = gamepads.filter((g) => g && g.connected).length;
+  log(`gamepaddisconnected (connected: ${gamepadCount} ${connectedGamepadsString(gamepads)})`);
+});
+</script>
+<h2>Gamepad API manual tests</h2>
+<p>
+Open the developer console to see test results. If you need to see the full gamepad state, use <a href="https://hardwaretester.com/gamepad">Hardware Tester</a>
+</p>
+<h3>Gamepad.id</h3>
+<p>
+Not testable as the content is not fully specified, it's a known interop issue. <button id="get-ids">Check</button>
+</p>
+
+<h3>Gamepad.index and getGamepads()</h3>
+<p>
+How many items does getGamepads() return? Is the last item non-null? <button id="get-gamepads">Check</button>
+</p>
+<p>
+Test the behavior when connecting and disconnecting gamepads
+<ol>
+<li>Connect one gamepad → confirm its index is 0</li>
+<li>Connect another gamepad → confirm its index is 1</li>
+<li>Disconnect first gamepad → confirm getGamepads() returns an array with null at index 0</li>
+<li>Reconnect first gamepad → confirm index 0 is reused</li>
+</ol>
+</p>
+
+<h3>Gamepad.connected and connection events</h3>
+<p>
+It should be true in the gamepadconnected listener, true in navigator.getGamepads(), false in the gamepaddisconnected listener.
+</p>
+
+<h3>Gamepad.timestamp</h3>
+<p>
+The timestamp is "current high resolution time" which is relative to the relevant settings object's time origin.
+According to the spec, the timestamp should be updated whenever new button or axis input values are received. Does the timestamp update for each report or only when values change?
+</p>
+
+<h3>Gamepad.mapping and button/axis ordering</h3>
+<p>
+The mapping should be "standard" for a well-known gamepad.
+Check that the axes length is 4 and the buttons length matches the expectation for that device.
+Check that each axis and button has the correct index
+</p>
+
+<b>Xbox:</b><br />
+<ul>
+<li>4 standard gamepad axes</li>
+<li>17 standard gamepad buttons (including Xbox button)</li>
+<ul>
+<li>A, B, X, Y, LB, RB, LT, RT, View, Menu, LS, RS, D-pad Up, D-pad Down, D-pad Left, D-pad Right, Nexus</li>
+</ul>
+<li>Is the Share button present? (model 1914)</li>
+<li>Are the paddle buttons present? (Xbox Elite)</li>
+<ul>
+<li>P1, P2, P3, P4</li>
+</ul>
+</ul>
+
+<b>Playstation:</b><br />
+<ul>
+<li>4 standard gamepad axes</li>
+<li>17 standard gamepad buttons (including PS button)</li>
+<ul>
+<li>X, O, Square, Triangle, L1, R1, L2, R2, Create, Options, L3, R3, D-pad Up, D-pad Down, D-pad Left, D-pad Right, PS</li>
+</ul>
+<li>Is the touchpad button present? (DualShock4, DualSense)</li>
+<li>Are back buttons present? (DualSense Edge)</li>
+<ul>
+<li>LB, RB, Fn, Fn</li>
+</ul>
+</ul>
+
+<b>Switch:</b><br />
+<ul>
+<li>4 standard gamepad axes</li>
+</ul>
+
+<h3>GamepadButton.pressed</h3>
+<p>
+For a pressure-sensitive button like a trigger, at what value does the pressed attribute change to true? <button id="start-watching2">Start watching</button> <button id="stop-watching2">Stop watching</button>
+</p>
+
+<h3>GamepadButton.touched</h3>
+<p>
+Is the touched attribute always true when the pressed attribute is true? <button id="start-watching3">Start watching</button> <button id="stop-watching3">Stop watching</button>
+</p>
+<p>
+For a pressure-sensitive button like a trigger, at what value does the touched attribute change to true?
+</p>
+
+<h3>GamepadTouch</h3>
+<p>
+Is touches populated for a touch-enabled device? <button id="check-touches">Check</button>
+</p>
+<p>
+Test the behavior with adding and removing touches:
+<ul>
+<li>No touches → empty touches</li>
+<li>Start touch #1 → one touch with ID 0</li>
+<li>Start touch #2 → two touches with IDs 0 and 1</li>
+<li>Remove touch #1 → one touch with ID 1</li>
+<li>Remove touch #2 → empty touches</li>
+</ul>
+</p>
+
+Can't test surfaceId (no supported devices with more than one surface)
+
+<h3>GamepadHapticActuator</h3>
+<p>
+Is it non-null on gamepads with haptic capabilities? <button id="check-haptic-gamepads">Check</button>
+</p>
+<p>
+Does the effects member exist? <button id="check-effects">Check</button>
+</p>
+<p>
+Does effects include "dual-rumble"? <button id="check-dual-rumble-gamepads">Check</button>
+</p>
+<p>
+Xbox: Does effects include "trigger-rumble"? <button id="check-trigger-rumble-gamepads">Check</button>
+</p>
+
+<h3>GamepadEffectParameters</h3>
+<p>
+<button id="effect-parameters-duration">Call playEffect</button> with duration 1000, strongMagnitude 1.0. Does it vibrate for about 1 second? Does it resolve with "complete"?
+</p>
+<p>
+<button id="effect-parameters-strong">Call playEffect</button> with strongMagnitude 1.0, then <button id="effect-parameters-weak">call playEffect</button> with weakMagnitude 1.0. Can you feel a difference between the strong and weak effects? Is the weak effect a higher frequency, less intense vibration?
+</p>
+<p>
+<button id="effect-parameters-start-delay">Call playEffect</button> with startDelay 1000 and duration 1000. Does it wait for about 1 second before vibrating?
+</p>
+<p>
+<button id="effect-parameters-long">Call playEffect</button> with duration 5000, then <button id="effect-parameters-start-delay-interrupt">interrupt it</button> with startDelay 1000. Does vibration stop for about 1 second before vibrating again?
+</p>
+
+<h3>"trigger-rumble"</h3>
+<p>
+<button id="trigger-rumble-left">Call playEffect</button> with leftTrigger 1.0. Is it felt in the left trigger?
+</p>
+<p>
+<button id="trigger-rumble-right">Call playEffect</button> with rightTrigger 1.0. Is it felt in the right trigger?
+</p>
+
+<h3>GamepadHapticsResult</h3>
+<p>
+<button id="haptics-result-strong">Call playEffect</button> with duration 5000 and strongMagnitude 1.0, then <button id="haptics-result-weak">interrupt it</button> with a second call to playEffect with duration 1000 and weakMagnitude 1.0.
+<ul>
+<li>Is the strongMagnitude effect interrupted by the weakMagnitude effect?</li>
+<li>Is the first playEffect promise resolved with "preempted"?</li>
+</ul>
+</p>
+
+<h3>Page visibility</h3>
+<p>
+Does the page still receive gamepad connection and disconnection events when hidden?
+</p>
+<p>
+Is gamepad button/axis state observable when hidden? <button id="start-watching">Start watching</button> <button id="stop-watching">Stop watching</button>
+</p>
+
+<h3>Page refresh</h3>
+<p>
+Are previously connected gamepads still connected after a page refresh? Is a user gesture still needed?
+</p>
+
+<h3>Back-forward cache</h3>
+<p>
+When navigating to a cached page that previously had a gamepad user gesture, is the user gesture remembered? Are connected gamepads still connected?
+</p>
+<p>
+Do gamepadconnected and gamepaddisconnected events fire for connection changes that occurred while the page was cached?
+</p>
+
+<h3>User activation</h3>
+<p>
+Is a gamepad button press counted as user activation for APIs that require user activation? Can fullscreen API trigger on a button press? Press the "start" button to try going fullscreen.
+</p>
+
+</p>
+</body>
+</html>
