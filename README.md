@@ -44,3 +44,26 @@ interactions (connect, disconnect, buttons, axes, touch, vibration).
 | WebKit | Chromium | Gecko | Nvidia |
 |-|-|-|-|
 | @marcoscaceres | @nondebug | | @xingri |
+
+## Progress status
+
+* Review the current status of Gamepad tests on the web
+  * 100% complete
+* Draft spec change to extend WebDriver BiDi for gamepad automation
+  * 100% complete
+  * [#224](https://github.com/w3c/gamepad/pull/224)
+* Write manual interop tests
+  * 100% complete
+  * [Test suite](https://web-platform-tests.github.io/interop-gamepad/manual-tests.html)
+* Conduct live interop testing and file bugs against the affected browsers
+  * 100% complete
+  * [Notes](https://docs.google.com/document/d/1oBV4K6rCZOn0p9XlMXBkLZBB-wcEPTUDtiCOwf_FusA/edit?tab=t.pqye8e4wjf1t#heading=h.pbf3d0wd6oz3)
+* Implement gamepad automation API
+  * Chromium implementation
+    * 40% complete
+  * Safari implementation
+    * 0% complete
+  * Firefox implementation
+    * 0% complete
+* Write web platform tests exercising gamepad behaviors
+  * 0% complete
