@@ -67,3 +67,7 @@ interactions (connect, disconnect, buttons, axes, touch, vibration).
     * 0% complete
 * Write web platform tests exercising gamepad behaviors
   * 0% complete
+
+## Notes
+
+[Investigation of Gamepad Testing Model for Interop 2025](https://docs.google.com/document/d/1oBV4K6rCZOn0p9XlMXBkLZBB-wcEPTUDtiCOwf_FusA/edit?tab=t.0#heading=h.xarlmp6z56ks)
